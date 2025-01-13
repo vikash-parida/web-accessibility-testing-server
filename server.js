@@ -1,23 +1,21 @@
 import express from 'express';
-import fetch from 'node-fetch'; // Polyfill fetch
-globalThis.fetch = fetch;      // Assign fetch globally
+import path from 'path';
+import { fileURLToPath } from 'url'; // Import fileURLToPath
+import fetch from 'node-fetch';      // Polyfill fetch
+globalThis.fetch = fetch;           // Assign fetch globally
 import lighthouse from 'lighthouse';
 import puppeteer from 'puppeteer';
-import path from 'path';
-import { URL } from 'url';
-import cors  from 'cors';
 
+// Define __dirname and __filename for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 3001;
-app.use(cors())
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 // Serve React build files
 app.use(express.static(path.join(__dirname, '../client/build')));
 
-console.log(path.resolve())
 // API endpoint for Lighthouse testing
 app.get('/api/test-lighthouse', async (req, res) => {
   const { url } = req.query;
