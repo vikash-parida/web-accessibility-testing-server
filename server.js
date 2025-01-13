@@ -1,15 +1,18 @@
-const express = require('express');
-const puppeteer = require('puppeteer');
-const path = require('path');
-const { URL } = require('url');
-const fetch = require('node-fetch');
-globalThis.fetch = fetch;
+import express from 'express';
+import fetch from 'node-fetch'; // Polyfill fetch
+globalThis.fetch = fetch;      // Assign fetch globally
+import lighthouse from 'lighthouse';
+import puppeteer from 'puppeteer';
+import path from 'path';
+import { URL } from 'url';
+import cors  from 'cors';
+
 
 const app = express();
 const PORT = 3001;
-
+app.use(cors())
 // Serve React build files
-app.use(express.static(path.join(__dirname, '../client/build')));
+app.use(express.static(path.join(path.resolve(), '../client/build')));
 
 // API endpoint for Lighthouse testing
 app.get('/api/test-lighthouse', async (req, res) => {
@@ -20,8 +23,7 @@ app.get('/api/test-lighthouse', async (req, res) => {
   }
 
   try {
-    const lighthouse = await import('lighthouse'); // Dynamically import Lighthouse
-    const report = await runLighthouseTest(url, lighthouse);
+    const report = await runLighthouseTest(url);
     res.json(report);
   } catch (error) {
     console.error('Error running Lighthouse:', error.message);
@@ -29,7 +31,7 @@ app.get('/api/test-lighthouse', async (req, res) => {
   }
 });
 
-async function runLighthouseTest(targetUrl, lighthouse) {
+async function runLighthouseTest(targetUrl) {
   const browser = await puppeteer.launch({ headless: true });
   const browserWSEndpoint = await browser.wsEndpoint();
 
@@ -39,7 +41,7 @@ async function runLighthouseTest(targetUrl, lighthouse) {
     onlyCategories: ['accessibility'], // Focus on accessibility category
   };
 
-  const result = await lighthouse.default(targetUrl, {
+  const result = await lighthouse(targetUrl, {
     port: new URL(browserWSEndpoint).port,
     ...lighthouseConfig,
   });
@@ -51,7 +53,7 @@ async function runLighthouseTest(targetUrl, lighthouse) {
 
 // Fallback for React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  res.sendFile(path.join(path.resolve(), '../client/build/index.html'));
 });
 
 // Start the server
