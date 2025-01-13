@@ -11,9 +11,13 @@ import cors  from 'cors';
 const app = express();
 const PORT = 3001;
 app.use(cors())
-// Serve React build files
-app.use(express.static(path.join(path.resolve(), '../client/build')));
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// Serve React build files
+app.use(express.static(path.join(__dirname, '../client/build')));
+
+console.log(path.resolve())
 // API endpoint for Lighthouse testing
 app.get('/api/test-lighthouse', async (req, res) => {
   const { url } = req.query;
@@ -53,7 +57,7 @@ async function runLighthouseTest(targetUrl) {
 
 // Fallback for React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(path.resolve(), '../client/build/index.html'));
+  res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });
 
 // Start the server
